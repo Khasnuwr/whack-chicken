@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack the Irritating Chicken</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: 'Arial', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8ff; /* Light blue background */
+            color: #333; /* Dark text */
+        }
+        h1 {
+            color: #2a9d8f; /* Ocean green */
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2a9d8f;
+        }
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 10px;
+            background-color: #4CAF50; /* Green grassy background */
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .hole {
+            width: 100px;
+            height: 100px;
+            background: #F5DEB3; /* Cream color for holes */
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%;
+            box-shadow: inset 0 8px 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.1s ease;
+        }
+        .hole.clicked {
+            transform: scale(0.9);
+        }
+        .chicken {
+            width: 80px;
+            position: absolute;
+            bottom: -80px;
+            transition: bottom 0.3s ease-in-out;
+        }
+        .chicken.show {
+            bottom: 0;
+        }
+        .dust {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 10%, transparent 100%);
+            animation: dustBlow 0.6s forwards;
+        }
+        @keyframes dustBlow {
+            0% {
+                transform: translateX(-50%) scale(0.5);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            display: none;
+        }
+        button {
+            background-color: #2a9d8f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #21867a; /* Darker shade on hover */
+        }
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(3, 80px); /* Smaller grid items */
+                grid-gap: 5px; /* Reduced gap */
+            }
+            h1 {
+                font-size: 28px; /* Smaller heading */
+            }
+            .score-board p {
+                font-size: 16px; /* Smaller score text */
+            }
+            button {
+                font-size: 16px; /* Smaller buttons */
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Whack the Irritating Chicken!</h1>
+    <div class="score-board">
+        <p>Score: <span id="score">0</span></p>
+        
+	<h1>--</h1>
+	<p style="color: red;">Misses: <span id="misses">0</span></p>
+    </div>
+    <button onclick="startGame()" aria-label="Start Game">Start Game</button>
+    <button onclick="stopGame()" aria-label="Stop Game" disabled>Stop Game</button>
+    <div class="grid-container">
+        <div class="grid" id="gameGrid">
+            <!-- 3x3 Grid -->
+            <div class="hole" data-index="0" aria-label="Hole 1"></div>
+            <div class="hole" data-index="1" aria-label="Hole 2"></div>
+            <div class="hole" data-index="2" aria-label="Hole 3"></div>
+            <div class="hole" data-index="3" aria-label="Hole 4"></div>
+            <div class="hole" data-index="4" aria-label="Hole 5"></div>
+            <div class="hole" data-index="5" aria-label="Hole 6"></div>
+            <div class="hole" data-index="6" aria-label="Hole 7"></div>
+            <div class="hole" data-index="7" aria-label="Hole 8"></div>
+            <div class="hole" data-index="8" aria-label="Hole 9"></div>
+        </div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <audio id="startEndSound" src="start_end.wav"></audio>
+    <audio id="whackSound" src="whack_chicken.mp3"></audio>
+    <script>
+        let score = 0;
+        let misses = 0;
+        let currentChicken = null;
+        let gameInterval = null;
+        let speed = 1200;
+        const holes = document.querySelectorAll(".hole");
+        const images = ["chicken_murgi.png", "dd1.png", "dd2.png", "dd3.png"];
+        const popup = document.getElementById("popup");
+
+        function startGame() {
+            let start_sound = document.getElementById("startEndSound");
+	        start_sound.volume = 0.15;
+	        start_sound.play();
+            score = 0;
+            misses = 0;
+            speed = 1200;
+            document.getElementById("score").textContent = score;
+            document.getElementById("misses").textContent = misses;
+            document.querySelector("button[onclick='startGame()']").disabled = true;
+            document.querySelector("button[onclick='stopGame()']").disabled = false;
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(showChicken, speed);
+        }
+
+        function stopGame() {
+            clearInterval(gameInterval);
+            let end_sound = document.getElementById("startEndSound");
+            end_sound.volume = 0.15;
+            end_sound.play();
+            showPopup("Game Stopped! Your score: " + score);
+            currentChicken = null;
+            document.querySelector("button[onclick='startGame()']").disabled = false;
+            document.querySelector("button[onclick='stopGame()']").disabled = true;
+        }
+
+        function showPopup(message) {
+            popup.textContent = message;
+            popup.style.display = "block";
+            setTimeout(() => popup.style.display = "none", 3000);
+        }
+
+        function showChicken() {
+            if (currentChicken) {
+                currentChicken.innerHTML = "";
+                misses++;
+                document.getElementById("misses").textContent = misses;
+                if (misses >= 5) return gameOver();
+            }
+
+            let randomIndex = Math.floor(Math.random() * holes.length);
+            let hole = holes[randomIndex];
+            let chicken = document.createElement("img");
+            let imageSrc = images[Math.floor(Math.random() * images.length)];
+            chicken.src = imageSrc;
+            chicken.classList.add("chicken");
+            hole.appendChild(chicken);
+            currentChicken = hole;
+            setTimeout(() => chicken.classList.add("show"), 50);
+
+            setTimeout(() => {
+                if (hole === currentChicken) {
+                    chicken.classList.remove("show");
+                    setTimeout(() => hole.innerHTML = "", 300);
+                }
+            }, speed);
+        }
+
+        holes.forEach(hole => {
+            hole.addEventListener("click", () => {
+                if (hole === currentChicken) {
+                    let clickedImage = currentChicken.querySelector("img").src;
+                    let points = 0;
+
+                    if (clickedImage.includes("chicken_murgi.png")) {
+                        points = 5;  // Rare chicken
+                    } else if (clickedImage.includes("dd1.png")) {
+                        points = 1;
+                    } else if (clickedImage.includes("dd2.png")) {
+                        points = 2;
+                    } else if (clickedImage.includes("dd3.png")) {
+                        points = 3;
+                    }
+
+                    score += points;
+                    document.getElementById("score").textContent = score;
+                    let whack_sound = document.getElementById("whackSound");
+                    whack_sound.volume = 0.08;
+                    whack_sound.play();
+                    hole.classList.add("clicked");
+
+                    if (score % 30 === 0) {
+                        speed -= 50;  // Increase speed every 30 points
+                        if (speed < 600) speed = 600; // Limit speed decrease
+                    }
+
+                    currentChicken.querySelector(".chicken").classList.remove("show");
+                    setTimeout(() => hole.innerHTML = "", 300);
+                    createDustEffect(hole);
+                    currentChicken = null;
+                }
+            });
+        });
+
+        function createDustEffect(hole) {
+            const dust = document.createElement("div");
+            dust.classList.add("dust");
+            hole.appendChild(dust);
+            setTimeout(() => dust.remove(), 600);
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            document.getElementById("startEndSound").play();
+            showPopup("Game Over! Your score: " + score);
+            currentChicken = null;
+            document.querySelector("button[onclick='startGame()']").disabled = false;
+            document.querySelector("button[onclick='stopGame()']").disabled = true;
+        }
+    </script>
+</body>
+</html>
