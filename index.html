@@ -7,7 +7,7 @@
 
     <meta property="og:title" content="Whack the Irritating Chicken" />
     <meta property="og:description" content="Hit the Chicken, Hit the Murgi" />
-    <meta property="og:image" content="https://imgur.com/a/UrAe93W" />
+    <meta property="og:image" content="/chicken_murgi.png" />
     <meta property="og:url" content="https://khasnuwr.github.io/whack-chicken/" />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/x-icon" href="chicken_murgi.png">
@@ -124,6 +124,25 @@
         button:hover {
             background-color: #21867a; /* Darker shade on hover */
         }
+
+        .footer {
+            background-color: #f3f4f6;
+            color: #555;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+
         /* Mobile Responsiveness */
         @media (max-width: 600px) {
             .grid {
@@ -170,6 +189,11 @@
     <div class="popup" id="popup"></div>
     <audio id="startEndSound" src="start_end.wav"></audio>
     <audio id="whackSound" src="whack_chicken.mp3"></audio>
+
+    <footer class="footer">
+        <p>Created for the people who ❤ loves to Hit <a style="text-decoration: none; color: red;">🐔 Chicken</a> <label style="color: red;"></label></p>
+    </footer>
+
     <script>
         let score = 0;
         let misses = 0;
